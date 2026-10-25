@@ -59,10 +59,6 @@ It is for teams that already sign in through an identity provider and don't want
 
 ## Installation
 
-On Frappe Cloud, install JWT Bearer Authentication from the [Frappe marketplace](https://cloud.frappe.io/marketplace/apps/jwt_bearer_auth).
-
-On a bench of your own:
-
 ```bash
 bench get-app https://github.com/Avunu/jwt_bearer_auth --branch version-16
 bench --site <site> install-app jwt_bearer_auth
