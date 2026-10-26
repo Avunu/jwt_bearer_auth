@@ -27,7 +27,7 @@ Run these in the dev shell, from the repository root.
 | ------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `frappe-test`                                     | Runs the app's tests on a test site, the way CI does                                  |
 | `prek run --all-files`                            | Runs every lint and format hook (ruff, ssort, oxfmt, oxlint and the others)           |
-| `yarn check`                                      | Checks the TypeScript formatting, lint and types                                      |
+| `yarn check`                                      | Checks formatting (oxfmt), lint (oxlint) and TypeScript types                         |
 | `nix run --no-pure-eval .#frappe-init -- --check` | Checks that the files frappe-nix manages are unchanged; it prints `frappe-nix: clean` |
 
 The tests are Frappe integration tests:
@@ -81,7 +81,7 @@ Commits follow Conventional Commits. release-please, run by `release.yml` on `de
 
 ### Logout
 
-`on_logout`, the hook Frappe calls from `LoginManager.logout`, stores `get_logout_url()` in `frappe.flags.jwt_logout_redirect`. `web_logout` and `jwt_logout` call `logout` themselves and also answer with an address: a Frappe redirect response for `web_logout`, and `{"redirect_url": ...}` for `jwt_logout`, which `app.bundle.ts` follows after replacing `frappe.Application.prototype.logout`. The prototype is replaced when the bundle loads, before Frappe creates `frappe.app`, so no polling is needed.
+`on_logout`, the hook Frappe calls from `LoginManager.logout`, stores `get_logout_url()` in `frappe.flags.jwt_logout_redirect`. `web_logout` and `jwt_logout` call `logout` themselves and also answer with an address: a Frappe redirect response for `web_logout`, and `{"redirect_url": ...}` for `jwt_logout`, which `app.bundle.ts` follows after replacing `frappe.Application.prototype.logout`. The prototype is replaced when the bundle loads, before Frappe creates `frappe.app`, so no polling is needed. Because `logout` runs the `on_logout` hook in the same request, `jwt_logout_redirect` is set for both methods, and `handle_redirects` turns their response into a 302 to the **Logout URL**: the `web_logout` redirect is replaced by that address, and the JSON answer of `jwt_logout` never reaches `app.bundle.ts`, whose XHR follows the 302 instead.
 
 ### Contact sync
 

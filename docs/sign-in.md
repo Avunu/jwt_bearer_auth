@@ -43,7 +43,7 @@ A valid token must carry an `email` claim; a token without one logs nobody in. T
 
 With none of these, the request goes on as a guest.
 
-The user is logged in through Frappe's own login manager, so Frappe's checks still apply: a disabled user cannot be logged in, and a user's **Restrict IP** list is enforced.
+The user is logged in through Frappe's own login manager, so Frappe's checks still apply: a disabled user cannot be logged in, a user's **Restrict IP** list is enforced, and so are the user's **Login After** and **Login Before** hours.
 
 ## Send the login page to the provider
 

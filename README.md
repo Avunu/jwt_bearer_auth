@@ -103,6 +103,7 @@ The full walk-through is in [docs/development.md](docs/development.md#how-it-wor
 - The app does not check that a request came through the identity provider: any client holding a valid token for the audience can send it. Keep the site reachable only through the provider.
 - One identity provider per site.
 - Turning **Enable JWT User Auth** off does not stop logouts from being redirected to the **Logout URL**.
+- The app's logout hook also redirects the desk's background logout call to the **Logout URL**, so the browser follows it inside that call rather than in the page. See [docs/logout.md](docs/logout.md#log-out-of-the-desk).
 
 The full list is in [docs/troubleshooting.md](docs/troubleshooting.md#limitations).
 

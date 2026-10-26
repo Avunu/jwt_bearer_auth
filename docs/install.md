@@ -26,7 +26,7 @@ bench get-app https://github.com/Avunu/jwt_bearer_auth --branch version-16
 bench --site <SITE_NAME> install-app jwt_bearer_auth
 ```
 
-`bench get-app` installs the Python packages the app needs (`PyJWT` and `requests`) and builds its desk bundle, the small script that sends the desk's **Log out** through the provider. If you skipped the build (`--skip-assets`), run `bench build --app jwt_bearer_auth`.
+`bench get-app` installs the Python packages the app needs (`PyJWT` and `requests`) and builds its desk bundle, the small script that replaces the desk's **Logout**. If you skipped the build (`--skip-assets`), run `bench build --app jwt_bearer_auth`.
 
 Then open **JWT Auth Settings** from the desk search, fill it in and save. See [Configuration](configuration.md).
 
@@ -37,7 +37,7 @@ The app has no fixtures, no custom fields, no property setters, no roles and no 
 - The **JWT Auth** module and its single doctype, **JWT Auth Settings**, which only a System Manager can open. Nothing is saved in it until you save the form.
 - Hooks that run on every request: the token check before the request is handled and the redirects after it. Until the settings hold a cookie or header name, the token check finds no token and does nothing.
 - A replacement for the website account menu: **My Account** and a **Log out** that goes through the provider.
-- A desk script that replaces the desk's **Log out**.
+- A desk script that replaces the desk's **Logout**.
 
 The full list is in [What the app adds to your site](configuration.md#what-the-app-adds-to-your-site).
 

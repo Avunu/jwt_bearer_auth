@@ -17,6 +17,7 @@ updated: 2026-10-26
 - **The first matching Contact.** When several Contacts share an email, the app uses the first one the database returns, both to find a linked user and to fill in a new one.
 - **Back to the path only.** After a new user completes their profile, the app returns them to the path of the page they first asked for, without its query string.
 - **The logout return address.** With **Redirect Param** set, the address added to the **Logout URL** is the logout request's own address, not encoded, and always after a `?`. See [Log out](logout.md#the-address-the-provider-returns-to).
+- **The desk's logout is redirected in the background.** The desk's **Logout** calls `jwt_bearer_auth.auth.jwt_logout`, and the app's own logout hook turns that call's answer into a redirect to the **Logout URL**, which the browser follows inside the background call. See [Log out of the desk](logout.md#log-out-of-the-desk).
 - **Logout always goes to the provider.** Turning **Enable JWT User Auth** off does not stop browser logouts from being redirected to the **Logout URL**. See [Log out](logout.md#with-token-login-turned-off).
 
 ## Troubleshooting
@@ -65,7 +66,11 @@ The provider lets the person in, the token does not log them in, and `/login` se
 
 ### "User ... is disabled. Please contact your System Manager."
 
-The token is valid and names a user who is disabled in Frappe. Frappe refuses to start the session and shows this message. Enable the user in **User** if they should have access.
+The token is valid and names a user who is disabled in Frappe. Frappe refuses to start the session and shows this message. Tick **Enabled** on the user in **User** if they should have access.
+
+### "Login not allowed at this time"
+
+The token is valid, but the user has **Login After** or **Login Before** hours set and the request falls outside them. Frappe refuses to start the session. Clear or change those hours in **User** if the person should have access now.
 
 ### Logging out logs straight back in
 
@@ -78,4 +83,4 @@ The Frappe session ends, but the provider's does not, so its token logs the pers
 
 ### A Contact is still called `[Change Me]`
 
-The rename runs as a background job. Check that the bench's workers are running, and see the job in **RQ Job** if it failed. The Contact is renamed only once its first, middle and last names make a full name other than `[Change Me]`.
+The rename runs as a background job. Check that the bench's workers are running, and see the job in **RQ Job** if it failed. The Contact is renamed only once its first, middle and last names (or, with no name, its company name) make a full name other than `[Change Me]`.

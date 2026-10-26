@@ -28,7 +28,7 @@ When the Contact has a first name, the person goes straight on to the page they 
 
 ## Without a Contact
 
-If no Contact has the email, the user is created with the first name `[Change Me]` and nothing else, and the person is asked to complete their profile. Frappe then creates a Contact for the new user, named after it: `[Change Me]`, or `[Change Me]-1` and so on when that name is taken.
+If no Contact has the email, the user is created with the first name `[Change Me]` and nothing else, and the person is asked to complete their profile. Frappe then creates a Contact for the new user in a background job, named after it: `[Change Me]`, or `[Change Me]-1` and so on when that name is taken.
 
 ## Completing the profile
 
@@ -46,7 +46,7 @@ Frappe's form then opens **My Account** (`/me`), and the app sends the person on
 
 Whenever a Contact that is linked to a user is saved, the app copies to that user any of these fields that changed on the Contact: **First Name**, **Middle Name**, **Last Name**, **Full Name**, **Phone**, **Mobile No** and **Gender**. This applies to every linked Contact, not only to ones the app created.
 
-The app also tidies up the `[Change Me]` placeholder. When a Contact whose name contains `[Change Me]`, or whose full name is `[Change Me]`, gets a real name, the app sets its **Full Name** and renames the Contact to that name, adding a number such as `-1` if another Contact already has it. The rename runs as a background job, so it needs the bench's workers running.
+The app also tidies up the `[Change Me]` placeholder. When a Contact whose name contains `[Change Me]`, or whose full name is `[Change Me]`, gets a real name (its first, middle and last names, or its company name when it has none), the app sets its **Full Name** and renames the Contact to that name, adding a number such as `-1` if another Contact already has it. The rename runs as a background job, so it needs the bench's workers running.
 
 For a person who completed their profile, this happens on its own: saving the profile updates the User, Frappe copies the new name to the user's Contact in a background job, and the app then renames that Contact.
 

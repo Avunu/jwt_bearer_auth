@@ -13,7 +13,10 @@ Ending only the Frappe session is not enough behind an identity provider. The br
 1. Open the user menu in the desk sidebar.
 2. Click **Logout**.
 
-The app replaces the desk's logout with its own. It calls `jwt_bearer_auth.auth.jwt_logout`, which ends the Frappe session and returns the **Logout URL**, and the browser goes there. With **Enable JWT User Auth** off, the method returns `/login` instead; see [With token login turned off](#with-token-login-turned-off).
+The app replaces the desk's logout with its own, which does not ask "Are you sure you want to log out?" first. It calls `jwt_bearer_auth.auth.jwt_logout` in the background, which ends the Frappe session and answers with the address to open next: the **Logout URL**, or `/login` with **Enable JWT User Auth** off. The desk then opens that address, or Frappe's login page when the answer holds none.
+
+> [!NOTE]
+> The app's logout hook also runs during that background call, so the server turns its answer into a redirect to the **Logout URL** (see [Any other logout](#any-other-logout)). The browser follows that redirect inside the background call, not in the page, so the provider's logout is requested there and the desk does not receive the address it waits for. What the page shows next depends on how the provider answers that request. Logging out from the website menu is not affected.
 
 ## Log out of the website
 
