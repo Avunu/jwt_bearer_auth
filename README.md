@@ -31,6 +31,8 @@ JWT Bearer Authentication signs people in to a Frappe site from the JSON Web Tok
 
 It is for teams that already sign in through an identity provider and don't want a second Frappe password to manage. The identity provider decides who someone is, and Frappe logs that person in from the signed token without asking for a Frappe password.
 
+Full documentation: [docs.avunu.net/jwt-bearer-auth/docs/](https://docs.avunu.net/jwt-bearer-auth/docs/).
+
 ## Features
 
 - **Token login.** On each request from a visitor who is not logged in, the app reads the JWT from the cookie or header you name and logs in the Frappe user whose email the token carries.
@@ -68,37 +70,42 @@ bench --site <site> install-app jwt_bearer_auth
 
 ## Configuration
 
-Open **JWT Auth Settings** from the desk search. You need an identity provider that issues JWTs; for Cloudflare Access, put the site behind an Access application first.
+Open **JWT Auth Settings** from the desk search (System Manager only). You need an identity provider that issues JWTs; for Cloudflare Access, put the site behind an Access application first. The three checkboxes are on by default, and the form cannot be saved without the cookie or header name, the JWKS URL, the audience and the login and logout URLs.
 
-| Setting                          | What it does                                                                                                                                                        |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Enable JWT User Auth**         | Turns token login on.                                                                                                                                               |
-| **Enable New User Registration** | Creates a user when a valid token names an email with no user yet.                                                                                                  |
-| **Override Frappe Login**        | Sends guests who open Frappe's `/login` page to the provider's **Login URL**, carrying the page they asked for in **Redirect Param**.                               |
-| **JWT Cookie/Header**            | The cookie or header that carries the token. The cookie is checked first. For Cloudflare Access, `CF_Authorization` (cookie) or `Cf-Access-Jwt-Assertion` (header). |
-| **JWKS URL**                     | The provider's public keys. For Cloudflare Access, `https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`.                                                      |
-| **JWT Private Secret**           | The audience the token must be issued for. For Cloudflare Access, the application's AUD tag. It is stored as a password field. Without it, every token is rejected. |
-| **Logout URL**                   | Where users are sent after logging out.                                                                                                                             |
-| **Login URL**                    | The provider's login page, used by **Override Frappe Login**.                                                                                                       |
-| **Redirect Param**               | The query parameter that carries the page to return to, added to the login and logout URLs. Leave it empty if the provider doesn't take one.                        |
+| Setting                          | What it does                                                                                                                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Enable JWT User Auth**         | Turns token login and the login override on.                                                                                                             |
+| **Enable New User Registration** | Creates a user when a valid token names an email with no user yet.                                                                                       |
+| **Override Frappe Login**        | Sends guests who open Frappe's `/login` page to the provider's **Login URL**, carrying the page they asked for in **Redirect Param**.                    |
+| **JWT Cookie/Header**            | The cookie or header that carries the token; the cookie is checked first. For Cloudflare Access, `CF_Authorization` or `Cf-Access-Jwt-Assertion`.        |
+| **JWKS URL**                     | The provider's public keys. For Cloudflare Access, `https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`.                                           |
+| **JWT Private Secret**           | The audience the token must be issued for (for Cloudflare Access, the application's AUD tag), stored as a password. Without it, every token is rejected. |
+| **Login URL**                    | The provider's login page, used by **Override Frappe Login**.                                                                                            |
+| **Logout URL**                   | Where the browser goes after logging out, so the provider's session ends too.                                                                            |
+| **Redirect Param**               | The query parameter that carries the address to return to, added to the login and logout URLs. Required while **Override Frappe Login** is on.           |
 
-Troubleshooting notes are in the [documentation](docs/README.md#troubleshooting).
+Every field, example values for Cloudflare Access and everything the app adds to a site are in [docs/configuration.md](docs/configuration.md); troubleshooting is in [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## How It Works
 
-- **`auth_hooks`** runs `jwt_bearer_auth.auth.validate_auth` on every request. When the visitor is a Guest and token login is on, it reads the token, fetches the keys from the JWKS URL, and decodes the token with PyJWT against each key, checking the RS256 signature and the audience. A valid token's `email` claim picks the user: an existing User with that email, else the user linked to a Contact with that email, else a new user when registration is on. The user is then logged in with Frappe's login manager.
-- **Registration** inserts the User (and links it to the matching Contact) inside the request, and asks Frappe to commit at the end of the request rather than committing part-way through.
-- **`after_request`** runs `jwt_bearer_auth.auth.handle_redirects`, which applies the redirect to the provider after logout, the redirect to the profile page after registration, and the login override. A newly registered user who lands on `/me` is sent back to the page they first asked for.
-- **Logout.** `on_logout` records the provider's logout URL for the response. The desk's **Log out** is replaced by a small bundle (`app.bundle.ts`) that calls `jwt_bearer_auth.auth.jwt_logout` and follows the URL it returns. On the website, the **Log out** link in the account menu calls `jwt_bearer_auth.auth.web_logout`.
+- **`auth_hooks`** runs `jwt_bearer_auth.auth.validate_auth` on every request. For a guest with token login on, it reads the token, verifies it with PyJWT against each key from the JWKS URL (RS256 and the audience), and logs in the user its `email` claim names: an existing User, else the user linked to a Contact with that email, else a new Website User when registration is on.
+- **`after_request`** runs `jwt_bearer_auth.auth.handle_redirects`, which applies the redirect to the provider after logout, the redirect to the profile page after registration, and the login override.
+- **Logout.** `on_logout` records the provider's logout URL. The desk's logout is replaced by a small bundle (`app.bundle.ts`) that calls `jwt_bearer_auth.auth.jwt_logout`; the website's **Log out** calls `jwt_bearer_auth.auth.web_logout`.
 - **Contact sync** is a `doc_events` hook on Contact's `on_update`.
+
+The full walk-through is in [docs/development.md](docs/development.md#how-it-works).
 
 ## Limitations
 
-- Only RS256 tokens are accepted, and only the `email` claim is used to find the user. Issuer and expiry are checked only as far as PyJWT's defaults go (expiry is checked when the token has an `exp` claim; the issuer is not checked).
-- The JWKS is fetched again for every token it checks, with no cache, so each login from a token makes one request to the provider.
+- Only RS256 tokens are accepted, and only the `email` claim is used to find the user. The issuer is not checked; expiry is checked when the token has an `exp` claim.
+- The JWKS is fetched again for every token it checks, with no cache.
 - Users created by registration are Website Users. Give them roles and desk access by hand if they need it.
-- The app does not check that a request came through the identity provider: any client holding a valid token for the audience can send it in the cookie or header. Keep the site reachable only through the provider.
-- One identity provider per site: the settings hold a single JWKS URL, audience, and cookie or header name.
+- The app does not check that a request came through the identity provider: any client holding a valid token for the audience can send it. Keep the site reachable only through the provider.
+- One identity provider per site.
+- Turning **Enable JWT User Auth** off does not stop logouts from being redirected to the **Logout URL**.
+- The app's logout hook also redirects the desk's background logout call to the **Logout URL**, so the browser follows it inside that call rather than in the page. See [docs/logout.md](docs/logout.md#log-out-of-the-desk).
+
+The full list is in [docs/troubleshooting.md](docs/troubleshooting.md#limitations).
 
 <!-- frappe-nix:begin support -->
 

@@ -1,74 +1,49 @@
-# JWT Bearer Authentication for Frappe
+---
+title: JWT Bearer Authentication
+description: Sign people in to a Frappe site from the JWT that Cloudflare Access or another JWKS identity provider attaches to each request.
+nav_title: Overview
+order: 0
+updated: 2026-10-26
+---
 
-**JWT Bearer Authentication** is a Frappe App that enables authentication via JWT tokens, integrating seamlessly with identity providers like Cloudflare Access. Instead of relying on native Frappe logins, this app authenticates incoming requests against a configured identity provider's JWT token, automatically logging in or registering users as needed.
+When a Frappe site sits behind an identity provider such as Cloudflare Access, people sign in twice: once at the provider and once more with a Frappe password. JWT Bearer Authentication removes the second step. The provider attaches a signed JSON Web Token (JWT) to every request, and the app checks that token and logs in the Frappe user whose email it carries.
 
-## Features
+It is for teams that already manage their people in an identity provider and want Frappe to trust it. Cloudflare Access is the provider it is built and used with; any provider that signs RS256 tokens and publishes its keys at a JWKS URL works the same way. It runs on Frappe v16 and is free software under the [MIT license](../license.txt).
 
-- **Any JWKS-based identity provider:**  
-  Tokens are RS256 JWTs verified against the provider's JWKS endpoint and checked for your application's audience. Cloudflare Access is the provider this app is used with.
+## What you get
 
-- **Automatic Login and Registration:**  
-  If the incoming JWT is valid and the user exists, they are immediately logged in. If the user does not exist but user registration is enabled, a new user will be created from existing `Contact` information or a placeholder user will be created, prompting profile updates.
+### Sign-in from the provider's token
 
-- **Customizable Login and Logout URLs:**  
-  The login URL, the logout URL and the redirect parameter are settings, so the app works with any single sign-on (SSO) front door that issues JWTs.
+On each request from a visitor who is not logged in, the app reads the token from the cookie or header you name, checks its signature against the provider's keys and its audience against your application, and logs in the matching user. With **Override Frappe Login** on, guests who open Frappe's `/login` page are sent to the provider instead. See [Sign in with a token](sign-in.md).
 
-- **Hooks:**
-  - `auth_hooks = ["jwt_bearer_auth.auth.validate_auth"]` validates the JWT on every request.
-  - `on_logout = ["jwt_bearer_auth.auth.on_logout"]` sends the user to the provider's logout URL.
-  - `after_request = ["jwt_bearer_auth.auth.handle_redirects"]` applies the login, logout and post-registration redirects.
-  - The desk's **Log out** goes through `jwt_bearer_auth.auth.jwt_logout`, so the provider's session ends too.
+![JWT Auth Settings filled in for Cloudflare Access: token cookie, JWKS URL, audience, and login and logout URLs](screenshots/settings-light.webp)
 
-## Prerequisites
+### Users created on first sign-in
 
-- Frappe Framework v16.
-- An existing Identity Provider (IdP) that issues JWT tokens, such as Cloudflare Access.
+With **Enable New User Registration** on, a valid token for an email that has no user yet creates a Website User, filled in from a Contact with that email when there is one. People without a name on file are asked to complete their profile. Later changes to the Contact are copied to the user. See [New users from a token](registration.md).
 
-## Installation
+![The user list with two website users created from a token: one filled in from a Contact, one still to complete their profile](screenshots/registered-users-light.webp)
 
-Navigate to your bench directory and install the app:
+### Logout through the provider
 
-```bash
-bench get-app https://github.com/Avunu/jwt_bearer_auth
-bench --site your-site-name install-app jwt_bearer_auth
-```
+Logging out of the desk or the website ends the Frappe session and then sends the browser to the provider's logout URL, so the provider's session ends too and the next request does not log the person straight back in. See [Log out](logout.md).
 
-## Configuration
+## Where to start
 
-**JWT Auth Settings** (open it from the desk search):
+| You are                                | Read                                                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Someone who signs in to the site       | [Sign in with a token](sign-in.md), [New users from a token](registration.md) and [Log out](logout.md) |
+| The administrator setting it up        | [Install and upgrade](install.md), then [Configuration](configuration.md)                              |
+| The administrator when something fails | [Limitations and troubleshooting](troubleshooting.md)                                                  |
+| A developer changing the app           | [Development](development.md)                                                                          |
 
-- **Enable JWT User Auth:** turn JWT-based authentication on.
-- **Enable New User Registration:** create a user when a valid token names an email with no user yet.
-- **Override Frappe Login:** send guests who open Frappe's `/login` page to the **Login URL**, carrying the page they asked for.
-- **JWT Cookie/Header:** the cookie or header that carries the token (for Cloudflare Access, `CF_Authorization` or `Cf-Access-Jwt-Assertion`).
-- **JWKS URL:** the provider's public keys (for Cloudflare Access, `https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`).
-- **JWT Private Secret:** the audience the token must be issued for (for Cloudflare Access, the application's AUD tag). Without it, every token is rejected.
-- **Logout URL:** where users are sent after logging out.
-- **Login URL:** the provider's login page, used by **Override Frappe Login**.
-- **Redirect Param:** the query parameter that carries the page to return to, added to the login and logout URLs.
+## Requirements
 
-## Usage
+- A bench with Frappe v16. The app declares `frappe >=16.0.0,<17.0.0`. It needs no other Frappe app.
+- An identity provider in front of the site that issues RS256 JWTs carrying an `email` claim and publishes its public keys at a JWKS URL, such as a Cloudflare Access application.
+- The Python packages `PyJWT` and `requests`, which installing the app pulls in.
+- Outbound HTTPS from the Frappe server to the provider's JWKS URL.
 
-- **Login:**  
-  Users who reach the site with a valid token from the identity provider are logged in automatically. With **Override Frappe Login** on, guests who reach Frappe's `/login` page are redirected to the **Login URL**, with the page they asked for in **Redirect Param**; with it off, they see Frappe's login page.
+## Source and changes
 
-- **Logout:**  
-  Logging out from the Frappe interface or calling `/?cmd=jwt_bearer_auth.auth.web_logout` will revoke the session and redirect the user to the provider’s logout URL.
-
-- **Automatic Redirection:**  
-  If registration is enabled and the user does not exist, a new user is created and optionally redirected to a profile update page.
-
-## Troubleshooting
-
-- **Invalid Token Errors:**  
-  Check that **JWT Private Secret** (the audience) is set and correct, and that the **JWKS URL** is reachable from the server.
-
-- **Users Not Created:**  
-  Make sure **Enable New User Registration** is checked and that the user’s email is present in the JWT claims. If user registration logic relies on the `Contact` doctype, ensure `Contact` records exist, or fallback logic creates a placeholder user.
-
-- **Redirect Loops:**  
-  If you experience redirect loops, verify that you are receiving a valid token from your IdP. Confirm that the token arrives in the header or cookie named in **JWT Cookie/Header**.
-
-## License
-
-MIT License. See [license.txt](https://github.com/Avunu/jwt_bearer_auth/blob/develop/license.txt) for more details.
+The source is at [github.com/Avunu/jwt_bearer_auth](https://github.com/Avunu/jwt_bearer_auth). Each release and its notes are on the [releases page](https://github.com/Avunu/jwt_bearer_auth/releases).

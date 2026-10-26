@@ -1,0 +1,26 @@
+name: Docs
+
+# Checks the documentation on every pull request that touches it, exactly as the one site
+# (https://docs.avunu.net/jwt-bearer-auth/) will build it, links to the other projects included. The work is
+# done by the shared workflow of Avunu/site-docs, pinned to a commit: the tool moves with the pin.
+# Nothing here can publish: the token is read-only and there is no secret. After a release,
+# Avunu/site-docs picks the documentation up by itself.
+on:
+  pull_request:
+    paths:
+      - docs/**
+      - .github/workflows/docs.yml
+
+permissions: {}
+
+concurrency:
+  group: docs-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    permissions:
+      contents: read # checkout
+    uses: Avunu/site-docs/.github/workflows/check-docs.yml@3f342fe388ecb93a860adfc3ad97a06cced0bf9e # 2026-10-25
+    with:
+      path: jwt-bearer-auth
