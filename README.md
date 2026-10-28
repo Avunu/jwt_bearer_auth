@@ -15,6 +15,7 @@ JWT single sign-on for Frappe via Cloudflare Access or another JWKS provider
 [![Latest release](https://img.shields.io/github/v/release/Avunu/jwt_bearer_auth)](https://github.com/Avunu/jwt_bearer_auth/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](license.txt)
 [![Frappe v16](https://img.shields.io/badge/Frappe-v16-blue)](https://github.com/frappe/frappe/tree/version-16)
+[![Documentation](https://img.shields.io/badge/docs-docs.avunu.net-blue)](https://docs.avunu.net/jwt-bearer-auth/)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/settings-dark.webp">
@@ -111,6 +112,7 @@ The full list is in [docs/troubleshooting.md](docs/troubleshooting.md#limitation
 
 ## Support
 
+- Documentation: [docs.avunu.net/jwt-bearer-auth/](https://docs.avunu.net/jwt-bearer-auth/)
 - Bug reports and questions: [GitHub issues](https://github.com/Avunu/jwt_bearer_auth/issues)
 - E-mail: <mail@avu.nu>
 
