@@ -7,7 +7,7 @@
 		"readme": "feature",
 		"width": 2880,
 		"height": 1800,
-		"sha256": "6585df0633e22f1b1c728c5bc463cc61799d6018ef6523dfa011b36176874a0f"
+		"sha256": "adfc32ad3c28f0acc9e53f332dfa952c1d2b0553d9d89d7fbe0956a1d5023190"
 	},
 	{
 		"name": "registered-users",
@@ -17,7 +17,7 @@
 		"readme": "feature",
 		"width": 2880,
 		"height": 1800,
-		"sha256": "627845acf46621a0bdb92a5afcf0ede505ebacb5b0263ed92e003bf5a97377af"
+		"sha256": "013b84de92d1f4b601174d768ac4e8271b3f6708055059ac2cfcf35be4a15c85"
 	},
 	{
 		"name": "settings",
