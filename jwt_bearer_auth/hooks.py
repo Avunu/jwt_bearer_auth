@@ -9,6 +9,18 @@ app_name = "jwt_bearer_auth"
 app_publisher = "Avunu LLC"
 app_title = "JWT Bearer Authentication"
 
+# Frappe's About dialog takes the logo from here. not_listed keeps the app off the apps screen.
+# app_logo_url would change the site's own logo.
+add_to_apps_screen = [
+	{
+		"name": "jwt_bearer_auth",
+		"logo": "/assets/jwt_bearer_auth/images/jwt_bearer_auth-logo.svg",
+		"title": "JWT Bearer Authentication",
+		"route": "/desk",
+		"has_permission": "jwt_bearer_auth.apps_screen.not_listed",
+	}
+]
+
 after_request = ["jwt_bearer_auth.auth.handle_redirects"]
 auth_hooks = ["jwt_bearer_auth.auth.validate_auth"]
 export_python_type_annotations = True
