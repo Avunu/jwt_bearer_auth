@@ -1,5 +1,12 @@
 # Changelog
 
+## [16.1.0](https://github.com/Avunu/jwt_bearer_auth/compare/v16.0.0...v16.1.0) (2026-11-07)
+
+
+### Features
+
+* show the app's logo in the About dialog, on frappe-nix 2.4.0 ([#56](https://github.com/Avunu/jwt_bearer_auth/issues/56)) ([a3b94aa](https://github.com/Avunu/jwt_bearer_auth/commit/a3b94aa3456b3c12207d0f64e11d9b451642dcf4))
+
 ## [16.0.0](https://github.com/Avunu/jwt_bearer_auth/compare/v0.0.1...v16.0.0) (2026-10-30)
 
 
