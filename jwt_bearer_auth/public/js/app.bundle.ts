@@ -1,19 +1,19 @@
 // Copyright (c) 2026, Avunu LLC and contributors
 // For license information, please see license.txt
 
+import type { FrappeApplication } from "frappe-types";
+
 /** What `jwt_bearer_auth.auth.jwt_logout` returns: where to send the browser once the Frappe session is gone. */
 interface JwtLogoutMessage {
 	redirect_url: string;
 }
-
-type DeskApplication = InstanceType<typeof frappe.Application>;
 
 /**
  * Desk logout through the identity provider: end the Frappe session on the server, then follow the
  * provider's logout URL (or Frappe's login page when JWT auth is off), so the provider's session ends too
  * and the next request doesn't log the user straight back in.
  */
-function jwtLogout(this: DeskApplication): void {
+function jwtLogout(this: FrappeApplication): void {
 	this.logged_out = true;
 	frappe.call<JwtLogoutMessage>({
 		method: "jwt_bearer_auth.auth.jwt_logout",
