@@ -21,6 +21,6 @@ jobs:
   docs:
     permissions:
       contents: read # checkout
-    uses: Avunu/site-docs/.github/workflows/check-docs.yml@1ebe093c5dd3dd53762cb9b2f97ed7123ac5f27e # 2026-10-25
+    uses: Avunu/site-docs/.github/workflows/check-docs.yml@995fa9a8fa59d8d5c697b7eeeb1674a0ceb59131 # 2026-10-25
     with:
       path: jwt-bearer-auth
